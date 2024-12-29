@@ -5,7 +5,9 @@ defmodule Auth.Application do
     IO.puts("Starting Auth Application")
 
     children = [
-      Auth.Database.Repo
+      Auth.Database.Repo,
+      {Registry, keys: :unique, name: Auth.TenantRegistry},
+      Auth.Tenants.Supervisor
     ]
 
     opts = [strategy: :one_for_one, name: Auth.Supervisor]
