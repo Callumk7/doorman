@@ -10,7 +10,7 @@ defmodule Auth.Tenants.AuthService do
   def authenticate(tenant_id, username, password) do
     case Auth.Tenants.Supervisor.get_tenant(tenant_id) do
       {:ok, _pid} ->
-        Auth.Tenants.Supervisor.authenticate(tenant_id, username, password)
+        Auth.Tenants.Server.authenticate(tenant_id, username, password)
 
       {:error, reason} ->
         {:error, reason}
