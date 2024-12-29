@@ -1,62 +1,38 @@
 defmodule Auth.Authentication.UserManager do
+  alias Auth.Authentication.PasswordManager
   alias Auth.Accounts.User
-  use GenServer
+  alias Auth.Database.Repo
 
-  def start_link(tenant_id) do
-    GenServer.start_link(__MODULE__, tenant_id, name: via_tuple(tenant_id))
-  end
+  import Ecto.Query
 
-  def init(tenant_id) do
-    {:ok, %{tenant_id: tenant_id}}
-  end
-
-  def register_user(tenant_id, username, email, password) do
-    password_hash = Auth.Authentication.PasswordManager.hash_password(password)
-
-    user = %User{
-      id: generate_user_id(),
+  def create_user(tenant_id, username, email, password) do
+    %User{}
+    |> User.registration_changeset(%{
       tenant_id: tenant_id,
       username: username,
       email: email,
-      password_hash: password_hash
-    }
-
-    :mnesia.transaction(fn ->
-      :mnesia.write(
-        {:users, user.id, user.tenant_id, user.username, user.email, user.password_hash}
-      )
-    end)
-
-    {:ok, user}
+      password_hash: PasswordManager.hash_password(password)
+    })
+    |> Repo.insert()
   end
 
   def authenticate(tenant_id, username, password) do
-    :mnesia.transaction(fn ->
-      case :mnesia.index_read(:users, username, 2) do
-        [{:users, id, ^tenant_id, ^username, email, stored_hash}] ->
-          if Auth.Authentication.PasswordManager.verify_password(password, stored_hash) do
-            {:ok,
-             %User{
-               id: id,
-               tenant_id: tenant_id,
-               username: username,
-               email: email
-             }}
-          else
-            {:error, :invalid_credentials}
-          end
+    query = from(u in User, where: u.tenant_id == ^tenant_id and u.username == ^username)
 
-        _ ->
-          {:error, :user_not_found}
-      end
-    end)
+    case Repo.one(query) do
+      nil ->
+        {:error, :user_not_found}
+
+      user ->
+        if PasswordManager.verify_password(password, user.password_hash) do
+          {:ok, user}
+        else
+          {:error, :invalid_credentials}
+        end
+    end
   end
 
-  defp generate_user_id do
-    :crypto.strong_rand_bytes(16) |> Base.encode64()
-  end
-
-  defp via_tuple(tenant_id) do
-    {:via, Registry, {Auth.Tenants.Registry, tenant_id}}
+  def get_user_by_email(email) do
+    Repo.get_by(User, email: email)
   end
 end
