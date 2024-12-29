@@ -1,14 +1,29 @@
-defmodule Auth.Tenants.Server do
+defmodule Auth.Tenant.Server do
+  alias Auth.Tenant.Manager
   require Logger
   use GenServer
 
   def start_link(opts) do
-    tenant_id = Keyword.fetch!(opts, :tenant_id)
-    GenServer.start_link(__MODULE__, tenant_id, name: via_tuple(tenant_id))
+    tenant = Keyword.fetch!(opts, :tenant)
+    GenServer.start_link(__MODULE__, tenant, name: via_tuple(tenant.id))
   end
 
-  def init(tenant_id) do
-    {:ok, %{id: tenant_id, users: [], created_at: NaiveDateTime.utc_now()}}
+  # TODO: This is the bit that is breaking the flow.. Need to not return stop for pending
+  def init(tenant) do
+    case tenant.status do
+      :active ->
+        {:ok,
+         %{
+           id: tenant.id,
+           name: tenant.name,
+           status: :active,
+           users: [],
+           max_users: tenant.max_users
+         }}
+
+      :pending ->
+        {:stop, :tenant_not_activated}
+    end
   end
 
   # Public API
@@ -20,7 +35,20 @@ defmodule Auth.Tenants.Server do
     GenServer.call(via_tuple(tenant_id), {:authenticate, username, password})
   end
 
-  # Sync
+  def activate(tenant_id) do
+    GenServer.call(via_tuple(tenant_id), :activate)
+  end
+
+  def handle_call(:activate, _from, state) do
+    case Manager.activate_tenant(state.id) do
+      {:ok, _tenant} ->
+        {:reply, :ok, %{state | status: :active}}
+
+      {:error, reason} ->
+        {:reply, {:error, reason}, state}
+    end
+  end
+
   def handle_call({:create_user, username, email, password}, _from, state) do
     case Auth.Authentication.UserManager.create_user(state.id, username, email, password) do
       {:ok, user} ->

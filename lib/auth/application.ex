@@ -7,7 +7,7 @@ defmodule Auth.Application do
     children = [
       Auth.Database.Repo,
       {Registry, keys: :unique, name: Auth.TenantRegistry},
-      Auth.Tenants.Supervisor,
+      Auth.Tenant.Supervisor,
       Auth.ProcessMonitor
     ]
 

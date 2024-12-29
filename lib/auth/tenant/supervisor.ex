@@ -1,4 +1,4 @@
-defmodule Auth.Tenants.Supervisor do
+defmodule Auth.Tenant.Supervisor do
   use DynamicSupervisor
 
   def start_link(init_arg) do
@@ -9,9 +9,19 @@ defmodule Auth.Tenants.Supervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  def start_tenant(tenant_id) do
-    spec = {Auth.Tenants.Server, tenant_id: tenant_id}
+  def start_tenant(tenant) do
+    spec = {Auth.Tenant.Server, tenant: tenant}
     DynamicSupervisor.start_child(__MODULE__, spec)
+  end
+
+  def stop_tenant(tenant_id) do
+    case Registry.lookup(Auth.TenantRegistry, tenant_id) do
+      [{pid, _}] ->
+        DynamicSupervisor.terminate_child(__MODULE__, pid)
+
+      [] ->
+        :ok
+    end
   end
 
   def get_tenant(tenant_id) do
