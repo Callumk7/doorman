@@ -7,7 +7,8 @@ defmodule Auth.Application do
     children = [
       Auth.Database.Repo,
       {Registry, keys: :unique, name: Auth.TenantRegistry},
-      Auth.Tenants.Supervisor
+      Auth.Tenants.Supervisor,
+      Auth.ProcessMonitor
     ]
 
     opts = [strategy: :one_for_one, name: Auth.Supervisor]

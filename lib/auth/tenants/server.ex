@@ -1,4 +1,5 @@
 defmodule Auth.Tenants.Server do
+  require Logger
   use GenServer
 
   def start_link(opts) do

@@ -27,12 +27,4 @@ defmodule AuthServer.MixProject do
       {:ecto_sql, "~> 3.10"}
     ]
   end
-
-  def aliases do
-    [
-      setup: ["deps.get", "ecto.setup"],
-      "ecto.setup": ["ecto.create", "ecto.migrate"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"]
-    ]
-  end
 end
