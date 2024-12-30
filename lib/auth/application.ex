@@ -5,7 +5,8 @@ defmodule Auth.Application do
     IO.puts("Starting Auth Application")
 
     children = [
-      Auth.Database.Repo,
+      Auth.Database.UserRepo,
+      Auth.Database.TenantRepo,
       {Registry, keys: :unique, name: Auth.TenantRegistry},
       Auth.Tenant.Supervisor,
       Auth.ProcessMonitor

@@ -1,7 +1,7 @@
 defmodule Auth.Authentication.UserManager do
   alias Auth.Authentication.PasswordManager
   alias Auth.Accounts.User
-  alias Auth.Database.Repo
+  alias Auth.Database.UserRepo
 
   import Ecto.Query
 
@@ -13,13 +13,13 @@ defmodule Auth.Authentication.UserManager do
       email: email,
       password_hash: PasswordManager.hash_password(password)
     })
-    |> Repo.insert()
+    |> UserRepo.insert()
   end
 
   def authenticate(tenant_id, username, password) do
     query = from(u in User, where: u.tenant_id == ^tenant_id and u.username == ^username)
 
-    case Repo.one(query) do
+    case UserRepo.one(query) do
       nil ->
         {:error, :user_not_found}
 
@@ -33,6 +33,6 @@ defmodule Auth.Authentication.UserManager do
   end
 
   def get_user_by_email(email) do
-    Repo.get_by(User, email: email)
+    UserRepo.get_by(User, email: email)
   end
 end

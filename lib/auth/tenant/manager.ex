@@ -2,6 +2,9 @@ defmodule Auth.Tenant.Manager do
   alias Auth.Tenant
   import Ecto.Query
 
+  @doc """
+  Create a tenant in the database, but do not start a process.
+  """
   def create_tenant(name, opts \\ %{}) do
     attrs =
       Map.merge(
@@ -17,8 +20,7 @@ defmodule Auth.Tenant.Manager do
          |> Tenant.changeset(attrs)
          |> Auth.Database.Repo.insert() do
       {:ok, tenant} ->
-        {:ok, _pid} = Auth.Tenant.Supervisor.start_tenant(tenant)
-        {:ok, tenant}
+        {:ok, tenant.id}
 
       {:error, changeset} ->
         {:error, changeset}

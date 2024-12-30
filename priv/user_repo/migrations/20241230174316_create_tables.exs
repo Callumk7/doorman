@@ -1,12 +1,12 @@
-defmodule Auth.Database.Repo.Migrations.CreateUsers do
+defmodule Auth.Database.UserRepo.Migrations.CreateTables do
   use Ecto.Migration
 
   def change do
     create table(:users) do
-      add :tenant_id, :string, null: false
-      add :username, :string, null: false
-      add :email, :string, null: false
-      add :password_hash, :string, null: false
+      add :tenant_id, :string
+      add :username, :string
+      add :email, :string
+      add :password_hash, :string
       add :confirmed, :boolean
       add :locked, :boolean
       add :failed_attempts, :integer
@@ -15,10 +15,11 @@ defmodule Auth.Database.Repo.Migrations.CreateUsers do
       add :magic_link_token_expires_at, :utc_datetime
       add :password_reset_token, :string
       add :password_reset_token_expires_at, :utc_datetime
+
       timestamps()
     end
 
-    create unique_index(:users, [:username, :tenant_id])
+    create unique_index(:users, [:username, :tenant_id], name: :users_username_tenant_id_index)
     create index(:users, [:email])
   end
 end
