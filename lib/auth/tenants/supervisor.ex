@@ -2,7 +2,7 @@ defmodule Auth.Tenants.Supervisor do
   use DynamicSupervisor
 
   def start_link(init_arg) do
-    Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
+    DynamicSupervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
 
   @impl true
@@ -12,5 +12,15 @@ defmodule Auth.Tenants.Supervisor do
 
   def start_tenant(tenant_id) do
     DynamicSupervisor.start_child(__MODULE__, {Auth.Tenants.Server, tenant_id})
+  end
+
+  def stop_tenant(tenant_id) do
+    case Registry.lookup(Auth.Tenants.Registry, tenant_id) do
+      [{pid, _}] ->
+        DynamicSupervisor.terminate_child(__MODULE__, pid)
+
+      [] ->
+        {:error, :not_found} # Probably doesn't need to be an error
+    end
   end
 end

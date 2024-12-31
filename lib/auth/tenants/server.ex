@@ -9,6 +9,10 @@ defmodule Auth.Tenants.Server do
   def get_active_users(tenant_id) do
     GenServer.call(via_tuple(tenant_id), :get_active_users)
   end
+  
+  def load_users(tenant_id) do
+    GenServer.call(via_tuple(tenant_id), :load_users)
+  end
 
   def add_user(tenant_id, user) do
     GenServer.cast(via_tuple(tenant_id), {:add_user, user})
@@ -21,12 +25,18 @@ defmodule Auth.Tenants.Server do
   # Server Callback implementation
   @impl true
   def init(tenant_id) do
-    {:ok, tenant_id}
+    {:ok, %{tenant_id: tenant_id, users: []}}
   end
 
   @impl true
   def handle_call(:get_active_users, _, state) do
     {:reply, state.users, state}
+  end
+
+  @impl true
+  def handle_call(:load_users, _, state) do
+    # TODO: Handle loading users in. Probably not a good way of doing this.
+    # This should actaally be handled in the init function itself I recon.
   end
 
   @impl true
@@ -47,6 +57,8 @@ defmodule Auth.Tenants.Server do
   end
 
   defp via_tuple(tenant_id) do
-    {:via, Registry, {Auth.TenantRegistry, tenant_id}}
+    {:via, Registry, {Auth.Tenants.Registry, tenant_id}}
   end
 end
+
+# TODO: handle continue, to load up the state for the cache

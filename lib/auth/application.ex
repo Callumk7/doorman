@@ -7,6 +7,7 @@ defmodule Auth.Application do
     children = [
       Auth.Repo,
       {Bandit, plug: Auth.Router},
+      {Registry, keys: :unique, name: Auth.Tenants.Registry},
       Auth.Tenants.Supervisor
     ]
 
