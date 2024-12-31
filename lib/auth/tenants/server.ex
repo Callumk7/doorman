@@ -9,10 +9,6 @@ defmodule Auth.Tenants.Server do
   def get_active_users(tenant_id) do
     GenServer.call(via_tuple(tenant_id), :get_active_users)
   end
-  
-  def load_users(tenant_id) do
-    GenServer.call(via_tuple(tenant_id), :load_users)
-  end
 
   def add_user(tenant_id, user) do
     GenServer.cast(via_tuple(tenant_id), {:add_user, user})
@@ -25,7 +21,14 @@ defmodule Auth.Tenants.Server do
   # Server Callback implementation
   @impl true
   def init(tenant_id) do
-    {:ok, %{tenant_id: tenant_id, users: []}}
+    IO.puts("Starting tenant server with id: #{tenant_id}")
+    {:ok, {tenant_id, nil}, {:continue, :init}}
+  end
+
+  @impl true
+  def handle_continue(:init, {tenant_id, nil}) do
+    tenant_state = Auth.Tenants.Manager.get_tenant_with_users(tenant_id)
+    {:noreply, tenant_state}
   end
 
   @impl true
@@ -33,12 +36,8 @@ defmodule Auth.Tenants.Server do
     {:reply, state.users, state}
   end
 
-  @impl true
-  def handle_call(:load_users, _, state) do
-    # TODO: Handle loading users in. Probably not a good way of doing this.
-    # This should actaally be handled in the init function itself I recon.
-  end
-
+  # TODO: new_user should probably just be the fields that it expects?
+  # Or is that going to be handled by the implementation
   @impl true
   def handle_cast({:add_user, new_user}, state) do
     case Auth.Accounts.Manager.create_user(new_user) do
@@ -61,4 +60,5 @@ defmodule Auth.Tenants.Server do
   end
 end
 
-# TODO: handle continue, to load up the state for the cache
+# TODO: A list is not a good data structure for the a user cache, a map with 
+# a key of the user id, and a value of the user is a much more performant option
