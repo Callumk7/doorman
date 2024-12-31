@@ -10,7 +10,6 @@ defmodule Auth.Supervisor do
     children = [
       Auth.Tenant.Supervisor,
       # Auth.Session.Supervisor,
-      # Auth.Token.Supervisor
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
