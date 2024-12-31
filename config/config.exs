@@ -1,8 +1,10 @@
 import Config
 
+config :auth_server, Auth.Repo,
+  database: "auth_server_repo",
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost"
+
 config :auth_server,
-  ecto_repos: [Auth.Database.Repo]
-
-config :auth_server, Auth.Database.Repo,
-  database: Path.expand("../db/state.db", Path.dirname(__ENV__.file))
-
+  ecto_repos: [Auth.Repo]

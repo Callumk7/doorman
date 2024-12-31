@@ -23,9 +23,8 @@ defmodule AuthServer.MixProject do
   defp deps do
     [
       {:argon2_elixir, "~> 4.0"},
-      {:ecto_sqlite3, "~> 0.10.0"},
       {:ecto_sql, "~> 3.10"},
-      {:jason, "~> 1.4"}
+      {:postgrex, ">= 0.0.0"}
     ]
   end
 end
