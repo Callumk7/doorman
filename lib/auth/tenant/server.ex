@@ -3,8 +3,7 @@ defmodule Auth.Tenant.Server do
   require Logger
   use GenServer
 
-  def start_link(opts) do
-    tenant = Keyword.fetch!(opts, :tenant)
+  def start_link(tenant) do
     GenServer.start_link(__MODULE__, tenant, name: via_tuple(tenant.id))
   end
 

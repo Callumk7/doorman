@@ -18,7 +18,7 @@ defmodule Auth.Tenant.Manager do
 
     case %Tenant{}
          |> Tenant.changeset(attrs)
-         |> Auth.Database.Repo.insert() do
+         |> Auth.Database.TenantRepo.insert() do
       {:ok, tenant} ->
         {:ok, tenant.id}
 
@@ -28,13 +28,13 @@ defmodule Auth.Tenant.Manager do
   end
 
   def get_tenant(tenant_id) do
-    Auth.Database.Repo.get_by(Tenant, id: tenant_id)
+    Auth.Database.TenantRepo.get_by(Tenant, id: tenant_id)
   end
 
   def delete_tenant(tenant_id) do
-    Auth.Database.Repo.get_by(Tenant, id: tenant_id)
+    Auth.Database.TenantRepo.get_by(Tenant, id: tenant_id)
     |> Ecto.Changeset.change(%{status: :deleted, deleted_at: NaiveDateTime.utc_now()})
-    |> Auth.Database.Repo.update()
+    |> Auth.Database.TenantRepo.update()
   end
 
   def list_tenants(status \\ nil) do
@@ -45,25 +45,31 @@ defmodule Auth.Tenant.Manager do
         Tenant
       end
 
-    Auth.Database.Repo.all(query)
+    Auth.Database.TenantRepo.all(query)
   end
 
   def activate_tenant(tenant_id) do
-    Auth.Database.Repo.get_by(Tenant, id: tenant_id)
-    |> Ecto.Changeset.change(%{
-      status: :active,
-      last_active_at: NaiveDateTime.utc_now()
-    })
-    |> Auth.Database.Repo.update()
+    case Auth.Database.TenantRepo.get_by(Tenant, id: tenant_id)
+         |> Ecto.Changeset.change(%{
+           status: :active,
+           last_active_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+         })
+         |> Auth.Database.TenantRepo.update() do
+      {:ok, tenant} ->
+        Auth.Tenant.Server.start_link(tenant)
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   def suspend_tenant(tenant_id, reason \\ nil) do
-    Auth.Database.Repo.get_by(Tenant, id: tenant_id)
+    Auth.Database.TenantRepo.get_by(Tenant, id: tenant_id)
     |> Ecto.Changeset.change(%{
       status: :suspended,
       suspended_at: NaiveDateTime.utc_now(),
       metadata: %{suspension_reason: reason}
     })
-    |> Auth.Database.Repo.update()
+    |> Auth.Database.TenantRepo.update()
   end
 end

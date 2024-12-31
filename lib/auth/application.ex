@@ -8,8 +8,7 @@ defmodule Auth.Application do
       Auth.Database.UserRepo,
       Auth.Database.TenantRepo,
       {Registry, keys: :unique, name: Auth.TenantRegistry},
-      Auth.Tenant.Supervisor,
-      Auth.ProcessMonitor
+      Auth.Tenant.Supervisor
     ]
 
     opts = [strategy: :one_for_one, name: Auth.Supervisor]
