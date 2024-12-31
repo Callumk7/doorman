@@ -1,11 +1,9 @@
 defmodule Auth.Tenants.Server do
   use GenServer
-  alias Auth.{Accounts}
 
   # Client API
   def start_link(tenant_id) do
-    name = via_tuple(tenant_id)
-    GenServer.start_link(__MODULE__, tenant_id, name: name)
+    GenServer.start_link(__MODULE__, tenant_id, name: via_tuple(tenant_id))
   end
 
   def get_active_users(tenant_id) do
@@ -32,8 +30,14 @@ defmodule Auth.Tenants.Server do
   end
 
   @impl true
-  def handle_cast({:add_user, user}, state) do
-    {:noreply, %{state | users: [user | state.users]}}
+  def handle_cast({:add_user, new_user}, state) do
+    case Auth.Accounts.Manager.create_user(new_user) do
+      {:ok, user} ->
+        {:noreply, %{state | users: [user | state.users]}}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @impl true
