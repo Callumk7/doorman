@@ -7,13 +7,13 @@ defmodule Auth.Tenant.Server do
   require Logger
   alias Auth.Tenant.Manager
 
-  def start_link(init_args) do
-    GenServer.start_link(__MODULE__, init_args, name: via_tuple(init_args.tenant_id))
+  def start_link(tenant) do
+    GenServer.start_link(__MODULE__, tenant, name: via_tuple(tenant.id))
   end
 
-  def init(init_args) do
+  def init(tenant) do
     # State is loaded by the tenant manager
-    {:ok, struct(State, init_args)}
+    {:ok, tenant}
   end
 
   # Public API
