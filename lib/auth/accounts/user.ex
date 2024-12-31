@@ -22,6 +22,8 @@ defmodule Auth.Accounts.User do
   end
 
   defp put_password_hash(%{valid?: true, changes: %{password: password}} = changeset) do
-    put_change(changeset, :password_hash, hash_pwd)
+    put_change(changeset, :password_hash, Auth.Accounts.PasswordManager.hash_password(password))
   end
+
+  defp put_password_hash(changeset), do: changeset
 end
