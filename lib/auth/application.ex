@@ -7,11 +7,10 @@ defmodule Auth.Application do
     children = [
       Auth.Database.UserRepo,
       Auth.Database.TenantRepo,
-      {Registry, keys: :unique, name: Auth.TenantRegistry},
-      Auth.Tenant.Supervisor
+      Auth.Supervisor,
     ]
 
-    opts = [strategy: :one_for_one, name: Auth.Supervisor]
+    opts = [strategy: :one_for_one, name: Auth.Application]
     Supervisor.start_link(children, opts)
   end
 end

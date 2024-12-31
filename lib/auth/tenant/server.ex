@@ -1,28 +1,19 @@
 defmodule Auth.Tenant.Server do
-  alias Auth.Tenant.Manager
-  require Logger
+  @moduledoc """
+  The main server for handling each tenant.
+  Servers are created using Auth.Tenant.Manager.
+  """
   use GenServer
+  require Logger
+  alias Auth.Tenant.Manager
 
-  def start_link(tenant) do
-    GenServer.start_link(__MODULE__, tenant, name: via_tuple(tenant.id))
+  def start_link(init_args) do
+    GenServer.start_link(__MODULE__, init_args, name: via_tuple(init_args.tenant_id))
   end
 
-  # TODO: This is the bit that is breaking the flow.. Need to not return stop for pending
-  def init(tenant) do
-    case tenant.status do
-      :active ->
-        {:ok,
-         %{
-           id: tenant.id,
-           name: tenant.name,
-           status: :active,
-           users: [],
-           max_users: tenant.max_users
-         }}
-
-      :pending ->
-        {:stop, :tenant_not_activated}
-    end
+  def init(init_args) do
+    # State is loaded by the tenant manager
+    {:ok, struct(State, init_args)}
   end
 
   # Public API
