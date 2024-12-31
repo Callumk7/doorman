@@ -5,9 +5,9 @@ defmodule Auth.Application do
     IO.puts("Starting Auth Application")
 
     children = [
-      Auth.Database.UserRepo,
-      Auth.Database.TenantRepo,
-      Auth.Supervisor,
+      Auth.Repo,
+      {Bandit, plug: Auth.Router},
+      Auth.Tenants.Supervisor
     ]
 
     opts = [strategy: :one_for_one, name: Auth.Application]
