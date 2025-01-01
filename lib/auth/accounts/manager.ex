@@ -8,5 +8,12 @@ defmodule Auth.Accounts.Manager do
     |> Repo.insert()
   end
 
-  def get_user!(id), do: Repo.get!(User, id)
+  def delete_user(user_id) do
+    Repo.get_by!(User, id: user_id)
+    |> Repo.delete()
+  end
+
+  def get_user(user_id) do
+    Repo.get_by(User, id: user_id)
+  end
 end
