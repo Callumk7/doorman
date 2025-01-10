@@ -7,7 +7,7 @@ defmodule Auth.Accounts.User do
     field(:password_hash, :string)
     field(:password, :string, virtual: true)
     belongs_to(:tenant, Auth.Tenants.Tenant)
-    has_many(:refresh_tokens, Auth.Accounts.Token)
+    has_many(:refresh_tokens, Auth.Accounts.RefreshToken)
 
     timestamps()
   end

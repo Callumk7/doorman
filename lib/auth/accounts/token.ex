@@ -1,4 +1,4 @@
-defmodule Auth.Accounts.Token do
+defmodule Auth.Accounts.RefreshToken do
   use Ecto.Schema
   import Ecto.Changeset
 
