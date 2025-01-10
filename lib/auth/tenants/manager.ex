@@ -5,8 +5,8 @@ defmodule Auth.Tenants.Manager do
   require Ecto.Query
 
   def start_tenants do
-      Repo.all(Tenant)
-      |> Enum.each(fn tenant -> Supervisor.start_tenant(tenant.id) end)
+    Repo.all(Tenant)
+    |> Enum.each(fn tenant -> Supervisor.start_tenant(tenant.id) end)
   end
 
   @doc """
@@ -35,6 +35,8 @@ defmodule Auth.Tenants.Manager do
   def create_tenant(attrs) do
     %Tenant{}
     |> Tenant.changeset(attrs)
+    |> Tenant.put_api_key()
+    |> Tenant.put_secret_key()
     |> Repo.insert()
   end
 

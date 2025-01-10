@@ -6,7 +6,7 @@ defmodule Auth.Repo.Migrations.AddKeysForTenants do
       add :api_key, :string, null: false
       add :secret_key, :string, null: false
     end
-  end
 
-  create unique_index(:tenants, [:api_key])
+    create unique_index(:tenants, [:api_key])
+  end
 end

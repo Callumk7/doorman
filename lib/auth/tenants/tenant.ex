@@ -23,4 +23,28 @@ defmodule Auth.Tenants.Tenant do
     |> validate_required([:name, :slug])
     |> unique_constraint(:slug)
   end
+
+  def put_api_key(changeset) do
+    case changeset do
+      %Ecto.Changeset{valid?: true} ->
+        put_change(changeset, :api_key, generate_key())
+
+      _ ->
+        changeset
+    end
+  end
+
+  def put_secret_key(changeset) do
+    case changeset do
+      %Ecto.Changeset{valid?: true} ->
+        put_change(changeset, :secret_key, generate_key())
+
+      _ ->
+        changeset
+    end
+  end
+
+  defp generate_key do
+    :crypto.strong_rand_bytes(32) |> Base.encode64(padding: false)
+  end
 end
