@@ -5,7 +5,6 @@ defmodule Auth.Tenants.Tenant do
   schema "tenants" do
     field(:name, :string)
     field(:slug, :string)
-    field(:settings, :map)
     field(:api_key, :string)
     field(:secret_key, :string)
     has_many(:users, Auth.Accounts.User)
@@ -17,8 +16,7 @@ defmodule Auth.Tenants.Tenant do
     tenant
     |> cast(attrs, [
       :name,
-      :slug,
-      :settings
+      :slug
     ])
     |> validate_required([:name, :slug])
     |> unique_constraint(:slug)
@@ -28,6 +26,7 @@ defmodule Auth.Tenants.Tenant do
     case changeset do
       %Ecto.Changeset{valid?: true} ->
         put_change(changeset, :api_key, generate_key())
+        |> unique_constraint(:api_key)
 
       _ ->
         changeset

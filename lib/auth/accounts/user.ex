@@ -6,16 +6,15 @@ defmodule Auth.Accounts.User do
     field(:email, :string)
     field(:password_hash, :string)
     field(:password, :string, virtual: true)
-    field(:active, :boolean, default: true)
     belongs_to(:tenant, Auth.Tenants.Tenant)
-    has_many(:sessions, Auth.Sessions.Session)
+    has_many(:refresh_tokens, Auth.Accounts.Token)
 
     timestamps()
   end
 
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:email, :password, :tenant_id, :active])
+    |> cast(attrs, [:email, :password, :tenant_id])
     |> validate_required([:email, :password, :tenant_id])
     |> unique_constraint([:email, :tenant_id])
     |> put_password_hash()
