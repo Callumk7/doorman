@@ -24,3 +24,6 @@ auth_server-*.tar
 
 # SQLite files
 auth_server.db*
+
+# Env variable
+/config/.env.exs
