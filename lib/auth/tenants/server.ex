@@ -10,8 +10,8 @@ defmodule Auth.Tenants.Server do
     GenServer.call(via_tuple(tenant_id), :get_active_users)
   end
 
-  def add_user(tenant_id, user) do
-    GenServer.cast(via_tuple(tenant_id), {:add_user, user})
+  def add_user(tenant_id, {name, email, password}) do
+    GenServer.cast(via_tuple(tenant_id), {:add_user, {name, email, password}})
   end
 
   def remove_user(tenant_id, user_id) do
@@ -39,8 +39,8 @@ defmodule Auth.Tenants.Server do
   # TODO: new_user should probably just be the fields that it expects?
   # Or is that going to be handled by the implementation
   @impl true
-  def handle_cast({:add_user, new_user}, state) do
-    case Auth.Accounts.Manager.create_user(new_user) do
+  def handle_cast({:add_user, {name, email, password}}, state) do
+    case Auth.Accounts.Manager.create_user(%{name: name, email: email, password: password}) do
       {:ok, user} ->
         {:noreply, %{state | users: [user | state.users]}}
 

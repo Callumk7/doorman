@@ -6,6 +6,8 @@ defmodule Auth.Tenants.Tenant do
     field(:name, :string)
     field(:slug, :string)
     field(:settings, :map)
+    field(:api_key, :string)
+    field(:secret_key, :string)
     has_many(:users, Auth.Accounts.User)
 
     timestamps()

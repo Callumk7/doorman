@@ -1,5 +1,9 @@
 import Config
 
+if config_env() in [:dev, :test] do
+  import_config ".env.exs"
+end
+
 config :auth_server, Auth.Repo,
   database: "auth_server_repo",
   username: "postgres",
@@ -8,3 +12,5 @@ config :auth_server, Auth.Repo,
 
 config :auth_server,
   ecto_repos: [Auth.Repo]
+
+config :joken, default_signer: System.get_env("SERVER_SECRET")

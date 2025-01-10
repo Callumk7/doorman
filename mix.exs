@@ -26,6 +26,7 @@ defmodule AuthServer.MixProject do
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
       {:bandit, "~> 1.0"},
+      {:joken, "~> 2.6"},
       {:jason, "~> 1.4"}
     ]
   end

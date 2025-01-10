@@ -2,6 +2,13 @@ defmodule Auth.Tenants.Manager do
   alias Auth.Repo
   alias Auth.Tenants.{Tenant, Supervisor}
 
+  require Ecto.Query
+
+  def start_tenants do
+      Repo.all(Tenant)
+      |> Enum.each(fn tenant -> Supervisor.start_tenant(tenant.id) end)
+  end
+
   @doc """
   Creates a new entry in the database and requests a new tenant 
   server which will be used to handle tenant requests
