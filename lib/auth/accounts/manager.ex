@@ -18,6 +18,21 @@ defmodule Auth.Accounts.Manager do
     Repo.get_by(User, id: user_id)
   end
 
+  def get_user_role(user_id) do
+    case Repo.get(User, user_id) do
+      nil -> {:error, :user_not_found}
+      {:ok, user} -> user.role
+    end
+  end
+
+  def create_admin_user(attrs) do
+    %User{}
+    |> User.changeset(Map.put(attrs, :role, "admin"))
+    |> Repo.insert()
+  end
+
+  def admin?(user), do: user.role == "admin"
+
   def authenticate(email, password, tenant_id) do
     user = Repo.get_by(User, email: email, tenant_id: tenant_id)
 
@@ -34,7 +49,11 @@ defmodule Auth.Accounts.Manager do
     expires_at = DateTime.utc_now() |> DateTime.add(30, :day) |> DateTime.truncate(:second)
 
     {:ok, access_token, _claims} =
-      Token.generate_and_sign(%{"sub" => user.id, "tenant" => user.tenant_id})
+      Token.generate_and_sign(%{
+        "sub" => user.id,
+        "tenant" => user.tenant_id,
+        "role" => user.role
+      })
 
     Repo.insert(%RefreshToken{
       token: refresh_token,

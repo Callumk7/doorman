@@ -51,13 +51,7 @@ defmodule Auth.Router do
     end
   end
 
-  get "/" do
-    send_resp(conn, 200, "SHE LIVES!!!")
-  end
-
-  post "/tenants" do
-    send_resp(conn, 400, "I have not built this yet")
-  end
+  forward "/api/protected", to: Auth.Router.Protected
 
   match _ do
     send_resp(conn, 404, "oops")
