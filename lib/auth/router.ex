@@ -1,6 +1,14 @@
 defmodule Auth.Router do
   use Plug.Router
 
+  plug(CORSPlug,
+    origin: ["*"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    headers: ["Authorization", "Content-Type", "Accept"],
+    expose_headers: ["Authorization"],
+    credentials: true
+  )
+
   plug(Plug.Logger)
   plug(:match)
   plug(Plug.Parsers, parsers: [:json], pass: ["application/json"], json_decoder: Jason)
@@ -51,7 +59,7 @@ defmodule Auth.Router do
     end
   end
 
-  forward "/api/protected", to: Auth.Router.Protected
+  forward("/api/protected", to: Auth.Router.Protected)
 
   match _ do
     send_resp(conn, 404, "oops")

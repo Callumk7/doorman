@@ -12,5 +12,3 @@ config :auth_server, Auth.Repo,
 
 config :auth_server,
   ecto_repos: [Auth.Repo]
-
-config :joken, default_signer: System.get_env("SERVER_SECRET")

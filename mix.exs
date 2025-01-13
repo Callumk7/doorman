@@ -7,7 +7,13 @@ defmodule AuthServer.MixProject do
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      releases: [
+        auth_server: [
+          include_executables_for: [:unix],
+          applications: [runtime_tools: :permanent]
+        ]
+      ]
     ]
   end
 
@@ -27,7 +33,8 @@ defmodule AuthServer.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:bandit, "~> 1.0"},
       {:joken, "~> 2.6"},
-      {:jason, "~> 1.4"}
+      {:jason, "~> 1.4"},
+      {:cors_plug, "~> 3.0"}
     ]
   end
 end
