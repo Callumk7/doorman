@@ -51,6 +51,7 @@ defmodule Auth.Accounts.Manager do
     {:ok, access_token, _claims} =
       Token.generate_and_sign(%{
         "sub" => user.id,
+        "email" => user.email,
         "tenant" => user.tenant_id,
         "role" => user.role
       })
