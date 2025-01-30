@@ -5,6 +5,11 @@ defmodule Auth.Router.Protected do
   plug(:match)
   plug(:dispatch)
 
+  get "/verify" do
+    conn
+    |> send_resp(200, "Verified")
+  end
+
   get "/me" do
     user_id = conn.assigns.current_user_id
     user = Auth.Accounts.Manager.get_user(user_id)

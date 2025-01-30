@@ -2,7 +2,7 @@ defmodule Auth.Router do
   use Plug.Router
 
   plug(CORSPlug,
-    origin: ["*"],
+    origin: ["http://localhost:5174"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     headers: ["Authorization", "Content-Type", "Accept"],
     expose_headers: ["Authorization"],
@@ -31,7 +31,22 @@ defmodule Auth.Router do
     case Auth.Accounts.Manager.authenticate(email, password, tenant_id) do
       {:ok, user} ->
         {:ok, tokens} = Auth.Accounts.Manager.create_tokens(user)
-        send_json(conn, 200, tokens)
+
+        conn
+        |> put_resp_cookie("access_token", tokens.access_token,
+          http_only: true,
+          secure: true,
+          same_site: "Strict"
+        )
+        |> put_resp_cookie("refresh_token", tokens.refresh_token,
+          http_only: true,
+          secure: true,
+          same_site: "Strict"
+        )
+        |> send_json(200, %{message: "Login Successful", user_id: user.id})
+
+      {:error, :invalid_credentials} ->
+        conn |> send_json(401, %{errror: "Invalid Credentials"})
     end
   end
 

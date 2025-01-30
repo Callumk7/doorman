@@ -7,7 +7,7 @@ defmodule Auth.Plugs.Authenticate do
   end
 
   def call(conn, _opts) do
-    with {:ok, token} <- extract_token(conn),
+    with {:ok, token} <- extract_access_token(conn),
          {:ok, claims} <- verify_token(token) do
       conn
       |> assign(:current_user_id, claims["sub"])
@@ -22,12 +22,27 @@ defmodule Auth.Plugs.Authenticate do
     end
   end
 
-  defp extract_token(conn) do
-    case get_req_header(conn, "authorization") do
-      ["Bearer " <> token] -> {:ok, token}
-      _ -> {:error, :missing_token}
+  defp extract_access_token(conn) do
+    conn = fetch_cookies(conn)
+    case conn.req_cookies["access_token"] do
+      nil ->
+        {:error, :missing_token}
+
+      token when is_binary(token) ->
+        {:ok, token}
+
+      _ ->
+        {:error, :invalid_token_format}
     end
   end
+
+  # Using the extract_access_token() function above instead than a bearer token
+  # defp extract_token(conn) do
+  #   case get_req_header(conn, "authorization") do
+  #     ["Bearer " <> token] -> {:ok, token}
+  #     _ -> {:error, :missing_token}
+  #   end
+  # end
 
   defp verify_token(token) do
     case Token.verify_and_validate(token) do
