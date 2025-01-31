@@ -55,7 +55,18 @@ defmodule Auth.Router do
 
     case Auth.Accounts.Manager.refresh_tokens(refresh_token) do
       {:ok, tokens} ->
-        send_json(conn, 200, tokens)
+        conn
+        |> put_resp_cookie("access_token", tokens.access_token,
+          http_only: true,
+          secure: true,
+          same_site: "Strict"
+        )
+        |> put_resp_cookie("refresh_token", tokens.refresh_token,
+          http_only: true,
+          secure: true,
+          same_site: "Strict"
+        )
+        |> send_json(200, %{message: "Refresh Successful"})
 
       {:error, _} ->
         send_json(conn, 401, %{error: "Invalid refresh token"})
