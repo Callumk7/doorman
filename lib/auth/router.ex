@@ -2,7 +2,7 @@ defmodule Auth.Router do
   use Plug.Router
 
   plug(CORSPlug,
-    origin: ["http://localhost:5174"],
+    origin: ["http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     headers: ["Authorization", "Content-Type", "Accept"],
     expose_headers: ["Authorization"],
@@ -18,7 +18,21 @@ defmodule Auth.Router do
     case Auth.Accounts.Manager.create_user(conn.body_params) do
       {:ok, user} ->
         {:ok, tokens} = Auth.Accounts.Manager.create_tokens(user)
-        send_json(conn, 201, tokens)
+
+        conn
+        |> put_resp_cookie("access_token", tokens.access_token,
+          http_only: true,
+          secure: true,
+          same_site: "Strict",
+          max_age: 15 * 60 * 60
+        )
+        |> put_resp_cookie("refresh_token", tokens.refresh_token,
+          http_only: true,
+          secure: true,
+          same_site: "Strict",
+          max_age: 30 * 24 * 60 * 60
+        )
+        |> send_json(200, %{message: "Registration Successful", user_id: user.id})
 
       {:error, changeset} ->
         send_json(conn, 422, %{errors: format_errors(changeset)})
@@ -36,12 +50,14 @@ defmodule Auth.Router do
         |> put_resp_cookie("access_token", tokens.access_token,
           http_only: true,
           secure: true,
-          same_site: "Strict"
+          same_site: "Strict",
+          max_age: 15 * 60 * 60
         )
         |> put_resp_cookie("refresh_token", tokens.refresh_token,
           http_only: true,
           secure: true,
-          same_site: "Strict"
+          same_site: "Strict",
+          max_age: 30 * 24 * 60 * 60
         )
         |> send_json(200, %{message: "Login Successful", user_id: user.id})
 
@@ -59,12 +75,16 @@ defmodule Auth.Router do
         |> put_resp_cookie("access_token", tokens.access_token,
           http_only: true,
           secure: true,
-          same_site: "Strict"
+          same_site: "Strict",
+          # fifteen minutes
+          max_age: 15 * 60 * 60
         )
         |> put_resp_cookie("refresh_token", tokens.refresh_token,
           http_only: true,
           secure: true,
-          same_site: "Strict"
+          same_site: "Strict",
+          # Thirty days
+          max_age: 30 * 24 * 60 * 60
         )
         |> send_json(200, %{message: "Refresh Successful"})
 
@@ -74,14 +94,34 @@ defmodule Auth.Router do
   end
 
   post "api/logout" do
-    %{"refresh_token" => refresh_token} = conn.body_params
+    conn = fetch_cookies(conn)
 
-    case Auth.Accounts.Manager.revoke_refresh_token(refresh_token) do
-      {:ok, _} ->
-        send_resp(conn, 204, "Success")
-
-      {:error, _} ->
+    case conn.req_cookies["refresh_token"] do
+      nil ->
         send_json(conn, 404, %{error: "Token not found"})
+
+      token when is_binary(token) ->
+        case Auth.Accounts.Manager.revoke_refresh_token(token) do
+          {:ok, _} ->
+            conn
+            |> delete_resp_cookie("access_token",
+              http_only: true,
+              secure: true,
+              same_site: "Strict"
+            )
+            |> delete_resp_cookie("refresh_token",
+              http_only: true,
+              secure: true,
+              same_site: "Strict"
+            )
+            |> send_resp(204, "Success")
+
+          {:error, _} ->
+            send_json(conn, 404, %{error: "Token not found"})
+        end
+
+      _ ->
+        send_json(conn, 404, %{error: "Incorrect token format"})
     end
   end
 

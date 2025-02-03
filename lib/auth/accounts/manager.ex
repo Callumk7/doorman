@@ -53,7 +53,7 @@ defmodule Auth.Accounts.Manager do
         "sub" => user.id,
         "email" => user.email,
         "tenant" => user.tenant_id,
-        "role" => user.role
+        "role" => user.role,
       })
 
     Repo.insert(%RefreshToken{
