@@ -2,9 +2,10 @@ defmodule Auth.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @derive {Jason.Encoder, only: [:id, :email, :role, :tenant_id, :inserted_at, :updated_at]}
+  @derive {Jason.Encoder, only: [:id, :email, :external_id, :role, :tenant_id, :inserted_at, :updated_at]}
   schema "users" do
     field(:email, :string)
+    field(:external_id, :string)
     field(:password_hash, :string)
     field(:password, :string, virtual: true)
     field(:role, :string, default: "user")
@@ -16,10 +17,11 @@ defmodule Auth.Accounts.User do
 
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:email, :password, :tenant_id, :role])
+    |> cast(attrs, [:email, :external_id, :password, :tenant_id, :role])
     |> validate_required([:email, :password, :tenant_id])
     |> validate_inclusion(:role, ["admin", "user"])
     |> unique_constraint([:email, :tenant_id])
+    |> unique_constraint([:external_id, :tenant_id])
     |> put_password_hash()
   end
 
