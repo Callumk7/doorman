@@ -19,6 +19,19 @@ defmodule Auth.Router.Protected do
     |> send_resp(200, Jason.encode!(user))
   end
 
+  # User specific routes
+  post "/me/update" do
+    user_id = conn.assigns.current_user_id
+
+    case Auth.Accounts.Manager.update_user(user_id, conn.body_params) do
+      {:ok, updated_user} ->
+        send_json(conn, 200, updated_user)
+
+      {:error, changeset} ->
+        send_json(conn, 422, %{errors: format_errors(changeset)})
+    end
+  end
+
   # Tenant specific routes
   post "/tenants" do
     case Auth.Tenants.Manager.create_tenant(conn.body_params) do

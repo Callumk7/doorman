@@ -9,6 +9,18 @@ defmodule Auth.Accounts.Manager do
     |> Repo.insert()
   end
 
+  def update_user(user_id, attrs) do
+    case Repo.get_by(User, id: user_id) do
+      nil ->
+        {:error, :user_not_found}
+
+      user ->
+        user
+        |> User.update_changeset(attrs)
+        |> Repo.update()
+    end
+  end
+
   def delete_user(user_id) do
     Repo.get_by!(User, id: user_id)
     |> Repo.delete()
@@ -53,7 +65,7 @@ defmodule Auth.Accounts.Manager do
         "sub" => user.id,
         "email" => user.email,
         "tenant" => user.tenant_id,
-        "role" => user.role,
+        "role" => user.role
       })
 
     Repo.insert(%RefreshToken{
