@@ -3,9 +3,9 @@ defmodule Auth.Jwts.Token do
 
   @impl true
   def token_config do
-    fifteen_minutes = 60 * 15
+    one_hour = 60 * 60
 
-    default_claims(default_exp: fifteen_minutes)
+    default_claims(default_exp: one_hour)
     |> add_claim("tenant", nil, &(&1 != nil))
   end
 

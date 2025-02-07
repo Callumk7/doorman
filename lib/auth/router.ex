@@ -1,6 +1,17 @@
 defmodule Auth.Router do
   use Plug.Router
 
+  @cookie_options [
+    http_only: true,
+    secure: true,
+    same_site: "Strict"
+  ]
+
+  # 1 hour
+  @access_token_max_age 60 * 60
+  # 30 days
+  @refresh_token_max_age 30 * 24 * 60 * 60
+
   plug(CORSPlug,
     origin: ["http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -20,18 +31,7 @@ defmodule Auth.Router do
         {:ok, tokens} = Auth.Accounts.Manager.create_tokens(user)
 
         conn
-        |> put_resp_cookie("access_token", tokens.access_token,
-          http_only: true,
-          secure: true,
-          same_site: "Strict",
-          max_age: 15 * 60 * 60
-        )
-        |> put_resp_cookie("refresh_token", tokens.refresh_token,
-          http_only: true,
-          secure: true,
-          same_site: "Strict",
-          max_age: 30 * 24 * 60 * 60
-        )
+        |> set_auth_cookies(tokens)
         |> send_json(200, %{message: "Registration Successful", user_id: user.id})
 
       {:error, changeset} ->
@@ -47,18 +47,7 @@ defmodule Auth.Router do
         {:ok, tokens} = Auth.Accounts.Manager.create_tokens(user)
 
         conn
-        |> put_resp_cookie("access_token", tokens.access_token,
-          http_only: true,
-          secure: true,
-          same_site: "Strict",
-          max_age: 15 * 60 * 60
-        )
-        |> put_resp_cookie("refresh_token", tokens.refresh_token,
-          http_only: true,
-          secure: true,
-          same_site: "Strict",
-          max_age: 30 * 24 * 60 * 60
-        )
+        |> set_auth_cookies(tokens)
         |> send_json(200, %{message: "Login Successful", user_id: user.id})
 
       {:error, :invalid_credentials} ->
@@ -72,20 +61,7 @@ defmodule Auth.Router do
     case Auth.Accounts.Manager.refresh_tokens(refresh_token) do
       {:ok, tokens} ->
         conn
-        |> put_resp_cookie("access_token", tokens.access_token,
-          http_only: true,
-          secure: true,
-          same_site: "Strict",
-          # fifteen minutes
-          max_age: 15 * 60 * 60
-        )
-        |> put_resp_cookie("refresh_token", tokens.refresh_token,
-          http_only: true,
-          secure: true,
-          same_site: "Strict",
-          # Thirty days
-          max_age: 30 * 24 * 60 * 60
-        )
+        |> set_auth_cookies(tokens)
         |> send_json(200, %{message: "Refresh Successful"})
 
       {:error, _} ->
@@ -104,15 +80,13 @@ defmodule Auth.Router do
         case Auth.Accounts.Manager.revoke_refresh_token(token) do
           {:ok, _} ->
             conn
-            |> delete_resp_cookie("access_token",
-              http_only: true,
-              secure: true,
-              same_site: "Strict"
+            |> delete_resp_cookie(
+              "access_token",
+              @cookie_options
             )
-            |> delete_resp_cookie("refresh_token",
-              http_only: true,
-              secure: true,
-              same_site: "Strict"
+            |> delete_resp_cookie(
+              "refresh_token",
+              @cookie_options
             )
             |> send_resp(204, "Success")
 
@@ -143,5 +117,19 @@ defmodule Auth.Router do
         String.replace(acc, "%{#{key}}", to_string(value))
       end)
     end)
+  end
+
+  defp set_auth_cookies(conn, tokens) do
+    conn
+    |> put_resp_cookie(
+      "access_token",
+      tokens.access_token,
+      Keyword.merge(@cookie_options, max_age: @access_token_max_age)
+    )
+    |> put_resp_cookie(
+      "refresh_token",
+      tokens.refresh_token,
+      Keyword.merge(@cookie_options, max_age: @refresh_token_max_age)
+    )
   end
 end
